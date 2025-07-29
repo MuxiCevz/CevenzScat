@@ -11,26 +11,20 @@ const server = http.createServer(app);
 const io     = new Server(server);
 
 const PORT = process.env.PORT || 3000;
-
 const MAX_MESSAGES = 1000;
 const MAX_LENGTH   = 2000;
 
-/* пути к файлам данных */
 const messagesPath = path.join(__dirname, 'CE', 'messages.json');
 const usersPath    = path.join(__dirname, 'CE', 'users.json');
 
-/* создаём папку CE, если её нет */
+/* создаём CE, если нет */
 if (!fs.existsSync(path.dirname(messagesPath))) {
   fs.mkdirSync(path.dirname(messagesPath), { recursive: true });
 }
-
-/* читаем сообщения */
 let messages = [];
 if (fs.existsSync(messagesPath)) {
   try { messages = JSON.parse(fs.readFileSync(messagesPath, 'utf8')); } catch { messages = []; }
 }
-
-/* читаем пользователей */
 let users = [];
 if (fs.existsSync(usersPath)) {
   try { users = JSON.parse(fs.readFileSync(usersPath, 'utf8')); } catch { users = []; }
@@ -40,12 +34,10 @@ if (fs.existsSync(usersPath)) {
 app.use(express.json());
 app.use(express.static('public'));
 
-/* ---------- REST API ---------- */
+/* REST API регистрация / вход */
 app.post('/api/login', (req, res) => {
   const { name, phone, pass, code } = req.body || {};
-  if (!name || !phone || !pass || !code) {
-    return res.status(400).json({ error: 'bad data' });
-  }
+  if (!name || !phone || !pass || !code) return res.status(400).json({ error: 'bad data' });
 
   let user = users.find(u => u.name === name && u.phone === phone && u.pass === pass && u.code === code);
   if (!user) {
@@ -56,12 +48,11 @@ app.post('/api/login', (req, res) => {
   res.json(user);
 });
 
-/* ---------- SOCKET ---------- */
+/* Socket */
 io.on('connection', socket => {
   socket.on('getHistory', () => socket.emit('history', messages));
 
-  socket.on('send', data => {
-    const { text, user } = data || {};
+  socket.on('send', ({ text, user }) => {
     if (typeof text !== 'string' || !user) return;
     const txt = text.trim();
     if (!txt || txt.length > MAX_LENGTH) return;
@@ -86,7 +77,6 @@ io.on('connection', socket => {
   });
 });
 
-/* ---------- START ---------- */
 server.listen(PORT, () => {
   console.log(`Cevenz Scat running at http://localhost:${PORT}`);
 });
