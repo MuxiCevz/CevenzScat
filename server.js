@@ -19,18 +19,18 @@ const MAX_LENGTH   = 2000;
 const messagesPath = path.join(__dirname, 'CE', 'messages.json');
 const usersPath    = path.join(__dirname, 'CE', 'users.json');
 
-/* создаём CE, если нет */
+/* создаём папку CE, если её нет */
 if (!fs.existsSync(path.dirname(messagesPath))) {
-  fs.mkdirSync(path.dirname(messagesPath));
+  fs.mkdirSync(path.dirname(messagesPath), { recursive: true });
 }
 
-/* загружаем сообщения */
+/* читаем сообщения */
 let messages = [];
 if (fs.existsSync(messagesPath)) {
   try { messages = JSON.parse(fs.readFileSync(messagesPath, 'utf8')); } catch { messages = []; }
 }
 
-/* загружаем пользователей */
+/* читаем пользователей */
 let users = [];
 if (fs.existsSync(usersPath)) {
   try { users = JSON.parse(fs.readFileSync(usersPath, 'utf8')); } catch { users = []; }
@@ -41,10 +41,11 @@ app.use(express.json());
 app.use(express.static('public'));
 
 /* ---------- REST API ---------- */
-/* регистрация / вход */
 app.post('/api/login', (req, res) => {
   const { name, phone, pass, code } = req.body || {};
-  if (!name || !phone || !pass || !code) return res.status(400).json({ error: 'bad data' });
+  if (!name || !phone || !pass || !code) {
+    return res.status(400).json({ error: 'bad data' });
+  }
 
   let user = users.find(u => u.name === name && u.phone === phone && u.pass === pass && u.code === code);
   if (!user) {
@@ -57,10 +58,8 @@ app.post('/api/login', (req, res) => {
 
 /* ---------- SOCKET ---------- */
 io.on('connection', socket => {
-  /* история */
   socket.on('getHistory', () => socket.emit('history', messages));
 
-  /* новое сообщение */
   socket.on('send', data => {
     const { text, user } = data || {};
     if (typeof text !== 'string' || !user) return;
@@ -74,14 +73,12 @@ io.on('connection', socket => {
     io.emit('newMessage', msg);
   });
 
-  /* удалить сообщение */
   socket.on('delete', id => {
     messages = messages.filter(m => m.id !== id);
     fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
     io.emit('messageDeleted', id);
   });
 
-  /* очистить чат */
   socket.on('clear', () => {
     messages = [];
     fs.writeFileSync(messagesPath, '[]', 'utf8');
@@ -89,7 +86,7 @@ io.on('connection', socket => {
   });
 });
 
-/* ---------- SERVER ---------- */
+/* ---------- START ---------- */
 server.listen(PORT, () => {
   console.log(`Cevenz Scat running at http://localhost:${PORT}`);
 });
