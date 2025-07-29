@@ -1,55 +1,95 @@
+/*  server.js  Cevenz Scat Beta 3.1  */
 const express = require('express');
-const http = require('http');
+const http    = require('http');
 const { Server } = require('socket.io');
-const fs = require('fs');
-const path = require('path');
+const fs      = require('fs');
+const path    = require('path');
 const { v4: uuid } = require('uuid');
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io     = new Server(server);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 const MAX_MESSAGES = 1000;
-const MAX_LENGTH = 2000;
+const MAX_LENGTH   = 2000;
 
+/* пути к файлам данных */
 const messagesPath = path.join(__dirname, 'CE', 'messages.json');
+const usersPath    = path.join(__dirname, 'CE', 'users.json');
 
-// Создаём CE/messages.json, если его нет
+/* создаём CE, если нет */
 if (!fs.existsSync(path.dirname(messagesPath))) {
   fs.mkdirSync(path.dirname(messagesPath));
 }
+
+/* загружаем сообщения */
 let messages = [];
 if (fs.existsSync(messagesPath)) {
-  try {
-    messages = JSON.parse(fs.readFileSync(messagesPath, 'utf8'));
-  } catch (e) {
-    messages = [];
-  }
+  try { messages = JSON.parse(fs.readFileSync(messagesPath, 'utf8')); } catch { messages = []; }
 }
 
-// Раздаём статику из public
+/* загружаем пользователей */
+let users = [];
+if (fs.existsSync(usersPath)) {
+  try { users = JSON.parse(fs.readFileSync(usersPath, 'utf8')); } catch { users = []; }
+}
+
+/* middleware */
+app.use(express.json());
 app.use(express.static('public'));
 
-// WebSocket
+/* ---------- REST API ---------- */
+/* регистрация / вход */
+app.post('/api/login', (req, res) => {
+  const { name, phone, pass, code } = req.body || {};
+  if (!name || !phone || !pass || !code) return res.status(400).json({ error: 'bad data' });
+
+  let user = users.find(u => u.name === name && u.phone === phone && u.pass === pass && u.code === code);
+  if (!user) {
+    user = { id: uuid(), name, phone, pass, code };
+    users.push(user);
+    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf8');
+  }
+  res.json(user);
+});
+
+/* ---------- SOCKET ---------- */
 io.on('connection', socket => {
-  // Отдаём историю при подключении
-  socket.emit('history', messages);
+  /* история */
+  socket.on('getHistory', () => socket.emit('history', messages));
 
-  socket.on('send', text => {
-    if (typeof text !== 'string') return;
-    text = text.trim();
-    if (text.length === 0 || text.length > MAX_LENGTH) return;
+  /* новое сообщение */
+  socket.on('send', data => {
+    const { text, user } = data || {};
+    if (typeof text !== 'string' || !user) return;
+    const txt = text.trim();
+    if (!txt || txt.length > MAX_LENGTH) return;
 
-    const msg = { id: uuid(), user: 'anon', text, ts: Date.now() };
+    const msg = { id: uuid(), user: user.name || 'anon', text: txt, ts: Date.now() };
     messages.push(msg);
     if (messages.length > MAX_MESSAGES) messages.shift();
-
     fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
     io.emit('newMessage', msg);
   });
+
+  /* удалить сообщение */
+  socket.on('delete', id => {
+    messages = messages.filter(m => m.id !== id);
+    fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
+    io.emit('messageDeleted', id);
+  });
+
+  /* очистить чат */
+  socket.on('clear', () => {
+    messages = [];
+    fs.writeFileSync(messagesPath, '[]', 'utf8');
+    io.emit('cleared');
+  });
 });
 
+/* ---------- SERVER ---------- */
 server.listen(PORT, () => {
-  console.log(`Server running http://localhost:${PORT}`);
+  console.log(`Cevenz Scat running at http://localhost:${PORT}`);
 });
