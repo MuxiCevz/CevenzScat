@@ -5,34 +5,38 @@
 <title>Cevenz Scat Beta 3.1</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
   :root{
     --bg:#111;
-    --panel:#1e1e1e;
-    --accent:#3f8cff;
-    --text:#f2f2f2;
-    --border:#333;
+    --panel:#222;
+    --border:#444;
+    --text:#eee;
+    --radius:12px;
+    --font:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
-  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:var(--font)}
   body{background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
-  header{background:var(--panel);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+  header{background:var(--panel);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 var(--radius) var(--radius)}
   header h1{font-size:20px;font-weight:600}
-  header button{margin-left:12px;padding:6px 14px;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-size:14px}
+  header button{margin-left:12px;padding:8px 16px;border:none;border-radius:var(--radius);background:var(--border);color:var(--text);cursor:pointer;font-size:14px;transition:.2s}
+  header button:hover{background:#555}
   #auth,#chat{flex:1;display:flex;flex-direction:column;padding:20px}
   #auth{justify-content:center;align-items:center}
-  #auth form{background:var(--panel);padding:30px;border-radius:8px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px}
-  #auth input{padding:10px;border-radius:4px;border:1px solid var(--border);background:#0d0d0d;color:var(--text)}
-  #auth button{padding:12px;border:none;border-radius:4px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer}
+  #auth form{background:var(--panel);padding:40px;border-radius:var(--radius);width:100%;max-width:340px;display:flex;flex-direction:column;gap:16px}
+  #auth input{padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:#111;color:var(--text);font-size:15px}
+  #auth button{padding:14px;border:none;border-radius:var(--radius);background:var(--border);color:var(--text);font-weight:600;cursor:pointer;font-size:16px;transition:.2s}
+  #auth button:hover{background:#555}
   #chat{display:none;flex-direction:column}
-  #messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-  .msg{background:var(--panel);padding:8px 12px;border-radius:6px;position:relative;cursor:pointer;user-select:none}
-  .msg .ctx{position:absolute;right:6px;top:6px;font-size:12px;color:var(--accent);display:none}
-  .msg:hover .ctx{display:block}
-  #form{display:flex;border-top:1px solid var(--border);padding:8px}
-  #form input{flex:1;padding:10px;border:none;border-radius:4px 0 0 4px;background:#0d0d0d;color:var(--text)}
-  #form button{padding:10px 16px;border:none;border-radius:0 4px 4px 0;background:var(--accent);color:#fff}
-  #ctxMenu{position:fixed;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 0;display:none;z-index:999}
-  #ctxMenu div{padding:6px 14px;cursor:pointer}
-  #ctxMenu div:hover{background:var(--accent)}
+  #messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+  .msg{background:var(--panel);padding:12px;border-radius:var(--radius);max-width:85%;word-break:break-word;cursor:pointer;transition:.2s}
+  .msg:hover{background:#333}
+  #form{display:flex;padding:12px;border-top:1px solid var(--border)}
+  #form input{flex:1;padding:12px;border:none;border-radius:var(--radius) 0 0 var(--radius);background:#111;color:var(--text);font-size:15px}
+  #form button{padding:12px 20px;border:none;border-radius:0 var(--radius) var(--radius) 0;background:var(--border);color:var(--text);cursor:pointer;font-size:16px;transition:.2s}
+  #form button:hover{background:#555}
+  #ctxMenu{position:fixed;background:#333;border:1px solid var(--border);border-radius:var(--radius);padding:6px 0;display:none;z-index:999}
+  #ctxMenu div{padding:8px 16px;cursor:pointer;font-size:14px}
+  #ctxMenu div:hover{background:#555}
 </style>
 </head>
 <body>
@@ -44,22 +48,22 @@
   </div>
 </header>
 
-<!-- Блок регистрации -->
+<!-- Регистрация -->
 <div id="auth">
   <form id="regForm">
-    <input type="text" id="name" placeholder="Имя" required maxlength="30">
-    <input type="tel" id="phone" placeholder="Номер телефона" required maxlength="20">
-    <input type="password" id="pass" placeholder="Пароль" required minlength="4">
-    <input type="password" id="code" placeholder="Пароль для входа (09270473)" required>
+    <input required maxlength="30" placeholder="Имя" id="name">
+    <input required maxlength="20" placeholder="Номер телефона" id="phone">
+    <input required minlength="4" type="password" placeholder="Пароль" id="pass">
+    <input required type="password" placeholder="Пароль для входа (09270473)" id="code">
     <button type="submit">Scat!</button>
   </form>
 </div>
 
-<!-- Блок чата -->
+<!-- Чат -->
 <div id="chat">
   <div id="messages"></div>
-  <form id="msgForm">
-    <input id="msgInput" maxlength="2000" placeholder="Сообщение..." required>
+  <form id="form">
+    <input required maxlength="2000" placeholder="Сообщение..." id="msgInput">
     <button type="submit">➤</button>
   </form>
 </div>
@@ -72,118 +76,88 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* ============  AUTH & STORAGE  ============ */
-const regForm   = document.getElementById('regForm');
-const authDiv   = document.getElementById('auth');
-const chatDiv   = document.getElementById('chat');
-const messages  = document.getElementById('messages');
-const clearBtn  = document.getElementById('clearBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const ctxMenu   = document.getElementById('ctxMenu');
+const socket = io();
+const authForm = document.getElementById('regForm');
+const authDiv  = document.getElementById('auth');
+const chatDiv  = document.getElementById('chat');
+const messages = document.getElementById('messages');
+const msgForm  = document.getElementById('form');
+const msgInput = document.getElementById('msgInput');
+const ctxMenu  = document.getElementById('ctxMenu');
 
 let user = null;
-const USERS_FILE = 'users.json'; // виртуально, реально будет на сервере
 
-/* --- Socket --- */
-const socket = io();
-
-/* --- Загрузка пользователя --- */
+/* Авторизация */
 function loadUser(){
-  const str = localStorage.getItem('user');
-  if(str){
-    user = JSON.parse(str);
-    enterChat();
-  }
+  const u = localStorage.getItem('user');
+  if(u){ user=JSON.parse(u); enterChat(); }
 }
 loadUser();
 
-/* --- Регистрация / вход --- */
-regForm.addEventListener('submit', e=>{
+authForm.addEventListener('submit', e=>{
   e.preventDefault();
-  const data = {
-    name:  document.getElementById('name').value.trim(),
-    phone: document.getElementById('phone').value.trim(),
-    pass:  document.getElementById('pass').value.trim(),
-    code:  document.getElementById('code').value.trim()
+  const payload = {
+    name:document.getElementById('name').value.trim(),
+    phone:document.getElementById('phone').value.trim(),
+    pass:document.getElementById('pass').value.trim(),
+    code:document.getElementById('code').value.trim()
   };
-  // Ищем совпадение по name+phone+pass+code
-  fetch('/api/login',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(data)
-  })
-  .then(r=>r.json())
-  .then(u=>{
-    user=u;
-    localStorage.setItem('user', JSON.stringify(user));
-    enterChat();
-  });
+  fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+    .then(r=>r.json()).then(u=>{ user=u; localStorage.setItem('user',JSON.stringify(u)); enterChat(); });
 });
 
-/* --- Вход в чат --- */
 function enterChat(){
   authDiv.style.display='none';
   chatDiv.style.display='flex';
   socket.emit('getHistory');
 }
 
-/* --- Выход / отчистка --- */
-logoutBtn.onclick = ()=>{
-  localStorage.removeItem('user');
-  location.reload();
-};
-clearBtn.onclick = ()=> socket.emit('clear');
+/* Выход / очистка */
+document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem('user'); location.reload(); };
+document.getElementById('clearBtn').onclick  = ()=> socket.emit('clear');
 
-/* --- Отправка сообщений --- */
-document.getElementById('msgForm').addEventListener('submit', e=>{
+/* Отправка сообщений */
+msgForm.addEventListener('submit', e=>{
   e.preventDefault();
-  const text = document.getElementById('msgInput').value.trim();
+  const text = msgInput.value.trim();
   if(!text) return;
-  socket.emit('send', text);
-  document.getElementById('msgInput').value='';
+  socket.emit('send', {text,user});
+  msgInput.value='';
 });
 
-/* --- Получение сообщений --- */
+/* Получение сообщений */
 socket.on('history', list=> list.forEach(addMsg));
 socket.on('newMessage', addMsg);
-socket.on('messageDeleted', id=>{
-  document.querySelector(`[data-id="${id}"]`)?.remove();
-});
+socket.on('messageDeleted', id=> document.querySelector(`[data-id="${id}"]`)?.remove());
 socket.on('cleared', ()=> messages.innerHTML='');
 
-/* --- Добавление сообщения --- */
-function addMsg({id,user:textUser,text}){
-  const div = document.createElement('div');
-  div.className='msg';
-  div.dataset.id=id;
-  div.innerHTML = `<strong>${textUser}</strong>: ${text}<span class="ctx">⋮</span>`;
+function addMsg({id,user,text}){
+  const div=document.createElement('div');
+  div.className='msg'; div.dataset.id=id;
+  div.innerHTML = `<strong>${user}</strong>: ${text}`;
   messages.appendChild(div);
   messages.scrollTop=messages.scrollHeight;
 }
 
-/* --- Контекстное меню (копировать/удалить) --- */
+/* Контекстное меню */
 let currentId=null;
 messages.addEventListener('contextmenu', e=>{
   e.preventDefault();
-  const msg = e.target.closest('.msg');
+  const msg=e.target.closest('.msg');
   if(!msg) return;
-  currentId = msg.dataset.id;
+  currentId=msg.dataset.id;
   ctxMenu.style.left=e.clientX+'px';
   ctxMenu.style.top=e.clientY+'px';
   ctxMenu.style.display='block';
 });
 document.addEventListener('click', ()=> ctxMenu.style.display='none');
-ctxMenu.onclick = e=>{
-  const action = e.target.dataset.action;
-  if(action==='copy'){
-    const txt = document.querySelector(`[data-id="${currentId}"]`).innerText;
-    navigator.clipboard.writeText(txt);
-  }
-  if(action==='delete'){
-    socket.emit('delete', currentId);
-  }
+ctxMenu.addEventListener('click', e=>{
+  if(!currentId) return;
+  const action=e.target.dataset.action;
+  if(action==='copy') navigator.clipboard.writeText(document.querySelector(`[data-id="${currentId}"]`).innerText);
+  if(action==='delete') socket.emit('delete', currentId);
   ctxMenu.style.display='none';
-}
+});
 </script>
 </body>
 </html>
